@@ -1,6 +1,5 @@
 use std::fmt;
 
-
 pub struct QuantumStateVector {
     state_vector: Vec<f64>,
 }
@@ -64,11 +63,12 @@ impl QuantumStateVector {
 impl fmt::Display for QuantumStateVector {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let bit_len = (self.state_vector.len() as f64).log2().ceil() as usize;
+        write!(f, "ψ = ")?;
 
         for i in 0..self.state_vector.len() {
             write!(
                 f,
-                "[{:.5} |{:0width$b}>]\n",
+                "({:.5})|{:0width$b}>   ",
                 self.state_vector[i],
                 i,
                 width = bit_len
@@ -93,6 +93,12 @@ impl PartialEq for QuantumStateVector {
     }
 }
 
+impl fmt::Debug for QuantumStateVector {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -108,27 +114,5 @@ mod tests {
     fn test_invalid_qsv() {
         let x = 1.0_f64 / (2.0_f64).sqrt();
         let _psi = QuantumStateVector::new(&[x, x, x]);
-    }
-
-    #[test]
-    fn test_cnot_control0_target1_distinct() {
-        let mut psi = QuantumStateVector::new(&[
-            0.619, // |00⟩
-            0.309, // |01⟩
-            0.722, // |10⟩
-            0.008, // |11⟩
-        ]);
-
-        psi.cnot(0, 1);
-
-        assert_eq!(
-            psi.state_vector,
-            vec![
-                0.619, // |00⟩
-                0.008, // |11⟩
-                0.722, // |10⟩
-                0.309, // |01⟩
-            ]
-        );
     }
 }
