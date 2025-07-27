@@ -1,4 +1,5 @@
 mod quantum_state_vector;
+mod gates;
 fn main() {
     // let x = 1.0_f64 / (2.0_f64).sqrt();
     let mut psi = quantum_state_vector::QuantumStateVector::new(&[
