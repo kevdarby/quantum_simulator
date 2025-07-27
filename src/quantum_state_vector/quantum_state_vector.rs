@@ -1,5 +1,6 @@
 use std::fmt;
 
+
 pub struct QuantumStateVector {
     state_vector: Vec<f64>,
 }

@@ -1,8 +1,8 @@
 
 
-    use crate::quantum_state_vector::QuantumStateVector;
-    
-    impl QuantumStateVector {
+
+    impl super::quantum_state_vector::QuantumStateVector {
+        
         /// Applies a CNOT gate with the specified control and target qubits.
         ///
         /// # Arguments
