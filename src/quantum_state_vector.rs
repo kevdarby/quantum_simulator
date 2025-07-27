@@ -1,6 +1,5 @@
 use std::fmt;
 
-use crate::quantum_state_vector;
 pub struct QuantumStateVector {
     state_vector: Vec<f64>,
 }
@@ -127,7 +126,7 @@ mod tests {
 
     #[test]
     fn test_cnot_control0_target1_distinct() {
-        let mut psi = quantum_state_vector::QuantumStateVector::new(&[
+        let mut psi = QuantumStateVector::new(&[
             0.619, // |00⟩
             0.309, // |01⟩
             0.722, // |10⟩
