@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::matrix::Matrix;
 
 pub struct QuantumStateVector {
     state_vector: Vec<f64>,
@@ -17,15 +18,29 @@ impl QuantumStateVector {
     /// This function will panic if the sum of the squares of the values is not 1,
     /// indicating an invalid quantum state vector.
     pub fn new(vals: &[f64]) -> Self {
-        let x = QuantumStateVector {
+        let qsv = QuantumStateVector {
             state_vector: (Vec::from(vals)),
         };
 
-        if !x.check_valid() {
+        if !qsv.check_valid() {
             panic!("Invalid Quantum State Vector! The sum of states^2 is not 1.")
         }
 
-        x
+        qsv
+    }
+
+    pub fn from_vec(v: Vec<f64>) -> Self {
+        let qsv = QuantumStateVector { state_vector: v };
+
+                if !qsv.check_valid() {
+            panic!("Invalid Quantum State Vector! The sum of states^2 is not 1.")
+        }
+
+        qsv
+    }
+
+    pub fn to_matrix(&self) -> Matrix {
+        Matrix::new(vec![self.state_vector.clone()])
     }
 
     /// Checks whether the quantum state vector is valid

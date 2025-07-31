@@ -15,6 +15,23 @@ impl Matrix {
         new_matrix
     }
 
+    pub fn identity(size: usize) -> Self {
+        let mut m = vec![vec![0.0; size]; size];
+
+        for i in 0..size {
+            m[i][i] = 1.0;
+        }
+
+        Matrix::new(m)
+    }
+
+    pub fn hadamard() -> Self {
+        Matrix::new(vec![
+            vec![1.0 / 2.0_f64.sqrt(), 1.0 / 2.0_f64.sqrt()],
+            vec![1.0 / 2.0_f64.sqrt(), -1.0 / 2.0_f64.sqrt()],
+        ])
+    }
+
     fn check_valid(&self) -> bool {
         if self.m.len() == 0 || self.m[0].len() == 0 {
             return false
