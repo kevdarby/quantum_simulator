@@ -160,8 +160,8 @@ mod tests {
 
         let expected_amplitude = 1.0 / 2f64.sqrt();
         let expected = QuantumStateVector::new(&[
-            expected_amplitude, // |00⟩
             0.0,                // |01⟩
+            expected_amplitude, // |00⟩
             0.0,                // |10⟩
             expected_amplitude, // |11⟩
         ]);

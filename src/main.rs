@@ -19,7 +19,6 @@ fn main() {
     //     0.0, // |11⟩
     // ]);
     let psi = QuantumStateVector::new(&[1.0, 0.0, 0.0, 0.0]); // |00⟩
-
     let psi = h(psi, 1); // Apply Hadamard to the leftmost qubit
     println!("psi state: {}", psi);
     let psi = cnot(psi, 1, 0); // Apply CNOT with control on the leftmost qubit and target on the rightmost qubit
