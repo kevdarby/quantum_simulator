@@ -1,5 +1,5 @@
-use crate::{matrix::Matrix, quantum_simulator::QuantumStateVector};
 use crate::matrix::matrix_operations::*;
+use crate::{matrix::Matrix, quantum_simulator::QuantumStateVector};
 
 /// Applies a CNOT gate with the specified control and target qubits.
 /// CNOT gate swaps the target bit if the control bit is 1.
@@ -29,28 +29,38 @@ pub fn cnot(mut psi: QuantumStateVector, control: usize, target: usize) -> Quant
 }
 
 /// Applies a Hadamard gate on the target qubit of psi.
-/// 
+///
 /// # Arguments
 ///
 /// * `target` - The index of the target qubit (little endian)
 pub fn h(psi: QuantumStateVector, target: usize) -> QuantumStateVector {
     let num_qubits = (psi.len() as f64).log2() as usize;
 
-    let mut op = Matrix::new(vec![vec![1.0]]); 
+    let mut op = Matrix::new(vec![vec![1.0]]);
 
-    for i in 0..num_qubits {
+    // First get op = I * I * ... * H * I ... where * is the tensor product
+    // and H is the Hadamard matrix
+    for i in (0..num_qubits).rev() {
+        println!("op before: {}", op);
         if i == target {
             op = tensor_product(op, Matrix::hadamard());
         } else {
             op = tensor_product(op, Matrix::identity(2));
         }
+        println!("op after:\n{}", op);
     }
 
-    let final_matrix = dot_product(op, transpose(psi.to_matrix())).m.remove(0);
-    println!("Final matrix: {:?}", final_matrix);
-    QuantumStateVector::from_vec(final_matrix)
-}
+    println!("op:\n {}", op);
+    // Now we apply the operator to the state vector, We must transpose the state matrix as it is currently a row vector
+    let psi_transposed = transpose(psi.to_matrix());
+    println!("psi_transposed:\n {}", psi_transposed);
+    let final_col_vector = dot_product(op, psi_transposed);
+    println!("final_col_vector:\n {}", final_col_vector);
+    let final_col_vector = transpose(final_col_vector).m.remove(0);
+    println!("final_col_vector: {:?}", final_col_vector);
 
+    QuantumStateVector::from_vec(final_col_vector)
+}
 
 #[cfg(test)]
 mod tests {
@@ -141,10 +151,22 @@ mod tests {
         assert_eq!(result, expected);
     }
 
-    // #[test]
-    // fn test_hadamard_zero() {
-    //     let mut psi = QuantumStateVector::new(&[1.0, 0.0]);
+     #[test]
+    fn test_create_bell_state_phi_plus() {
+        let psi = QuantumStateVector::new(&[1.0, 0.0, 0.0, 0.0]); // |00⟩
 
-    //     // psi = h(psi);
-    // }
+        let psi = h(psi, 1); // Apply Hadamard to the leftmost qubit
+        let psi = cnot(psi, 1, 0); // Apply CNOT with control on the leftmost qubit and target on the rightmost qubit
+
+        let expected_amplitude = 1.0 / 2f64.sqrt();
+        let expected = QuantumStateVector::new(&[
+            expected_amplitude, // |00⟩
+            0.0,                // |01⟩
+            0.0,                // |10⟩
+            expected_amplitude, // |11⟩
+        ]);
+
+        assert_eq!(psi, expected);
+    }
+
 }
