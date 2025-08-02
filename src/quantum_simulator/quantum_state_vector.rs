@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::matrix::Matrix;
+use std::fmt;
 
 pub struct QuantumStateVector {
     state_vector: Vec<f64>,
@@ -32,7 +32,7 @@ impl QuantumStateVector {
     pub fn from_vec(v: Vec<f64>) -> Self {
         let qsv = QuantumStateVector { state_vector: v };
 
-                if !qsv.check_valid() {
+        if !qsv.check_valid() {
             panic!("Invalid Quantum State Vector! The sum of states^2 is not 1.")
         }
 
@@ -72,6 +72,52 @@ impl QuantumStateVector {
 
     pub(crate) fn swap(&mut self, i: usize, j: usize) {
         self.state_vector.swap(i, j)
+    }
+
+    /// Measures the target bit, collapsing it to either 0 or 1.
+    /// The probabilities for the other states are then normalized.
+    ///
+    /// # Arguments
+    /// * 'target'  
+    ///
+    /// # Returns
+    /// A tuple containing:
+    /// - The measurement result (0 or 1).
+    /// - The updated quantum state that is normalized without the qubit being measured.
+    pub fn measure(&self, target: usize) -> (u8, Self) {
+        // make a test case that the returning self is half the size.
+        // make test case for making bell state, measure bit 0 = x, and asserting 1 is always x
+        if target.pow(2) >= self.len() {
+            panic!("Target index out of bounds: {}", target);
+        }
+        let mut zero_prob = 0.0;
+        for i in 0..self.len() {
+            let bit = (i >> target) & 1;
+            if bit == 0 {
+                zero_prob += self.state_vector[i].powi(2);
+            }
+        }
+        let return_value: u8 = if rand::random::<f64>() < zero_prob {
+            0
+        } else {
+            1
+        };
+
+        let mut new_state = vec![0.0; self.len() / 2];
+        let mut total: f64 = 0.0;
+        for i in 0..self.len() {
+            let bit: u8 = ((i >> target) & 1) as u8;
+            if bit == return_value {
+                new_state[i/2] += self.state_vector[i];
+                total += self.state_vector[i].powf(2.0);
+            }
+        }
+        total = total.sqrt();
+        // Normalize the new state vector
+        for i in 0..new_state.len() {
+            new_state[i] /= total;
+        }
+        (return_value, QuantumStateVector::new(&new_state))
     }
 }
 

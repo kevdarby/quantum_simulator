@@ -41,23 +41,18 @@ pub fn h(psi: QuantumStateVector, target: usize) -> QuantumStateVector {
     // First get op = I * I * ... * H * I ... where * is the tensor product
     // and H is the Hadamard matrix
     for i in (0..num_qubits).rev() {
-        println!("op before: {}", op);
         if i == target {
             op = tensor_product(op, Matrix::hadamard());
         } else {
             op = tensor_product(op, Matrix::identity(2));
         }
-        println!("op after:\n{}", op);
     }
 
-    println!("op:\n {}", op);
-    // Now we apply the operator to the state vector, We must transpose the state matrix as it is currently a row vector
+    // Now we apply the operator to the state vector, 
+    // We must transpose the state matrix as it is currently a row vector
     let psi_transposed = transpose(psi.to_matrix());
-    println!("psi_transposed:\n {}", psi_transposed);
     let final_col_vector = dot_product(op, psi_transposed);
-    println!("final_col_vector:\n {}", final_col_vector);
     let final_col_vector = transpose(final_col_vector).m.remove(0);
-    println!("final_col_vector: {:?}", final_col_vector);
 
     QuantumStateVector::from_vec(final_col_vector)
 }
@@ -160,13 +155,29 @@ mod tests {
 
         let expected_amplitude = 1.0 / 2f64.sqrt();
         let expected = QuantumStateVector::new(&[
-            0.0,                // |01⟩
             expected_amplitude, // |00⟩
+            0.0,                // |01⟩
             0.0,                // |10⟩
             expected_amplitude, // |11⟩
         ]);
 
         assert_eq!(psi, expected);
+    }
+
+    #[test]
+    fn test_hadamard_inverse_property() {
+        // H(H(psi))= psi
+        let psi = QuantumStateVector::new(&[0.0, 1.0]); 
+        let result = h(psi, 0);
+        let result = h(result, 0);
+        let original_state = QuantumStateVector::new(&[0.0, 1.0]);
+        assert_eq!(result, original_state);
+
+        let psi = QuantumStateVector::new(&[1.0, 0.0]); 
+        let result = h(psi, 0);
+        let result = h(result, 0);
+        let original_state = QuantumStateVector::new(&[1.0, 0.0]);
+        assert_eq!(result, original_state);
     }
 
 }
