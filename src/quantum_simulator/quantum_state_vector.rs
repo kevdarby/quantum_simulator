@@ -84,8 +84,7 @@ impl QuantumStateVector {
     /// A tuple containing:
     /// - The measurement result (0 or 1).
     /// - The updated quantum state that is normalized without the qubit being measured.
-    pub fn measure(&self, target: usize) -> (u8, Self) {
-        // make a test case that the returning self is half the size.
+    pub fn measure(mut self, target: usize) -> (u8, Self) {
         // make test case for making bell state, measure bit 0 = x, and asserting 1 is always x
         if target.pow(2) >= self.len() {
             panic!("Target index out of bounds: {}", target);
@@ -103,21 +102,20 @@ impl QuantumStateVector {
             1
         };
 
-        let mut new_state = vec![0.0; self.len() / 2];
         let mut total: f64 = 0.0;
         for i in 0..self.len() {
             let bit: u8 = ((i >> target) & 1) as u8;
-            if bit == return_value {
-                new_state[i/2] += self.state_vector[i];
-                total += self.state_vector[i].powf(2.0);
+            if bit != return_value {
+                self.state_vector[i] = 0.0;
             }
+            total += self.state_vector[i].powf(2.0);
         }
         total = total.sqrt();
         // Normalize the new state vector
-        for i in 0..new_state.len() {
-            new_state[i] /= total;
+        for i in 0..self.state_vector.len() {
+            self.state_vector[i] /= total;
         }
-        (return_value, QuantumStateVector::new(&new_state))
+        (return_value, self)
     }
 }
 
@@ -163,6 +161,7 @@ impl fmt::Debug for QuantumStateVector {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::quantum_simulator::gates::{h, cnot};
 
     #[test]
     fn test_valid_qsv() {
@@ -175,5 +174,34 @@ mod tests {
     fn test_invalid_qsv() {
         let x = 1.0_f64 / (2.0_f64).sqrt();
         let _psi = QuantumStateVector::new(&[x, x, x]);
+    }
+
+    #[test]
+    fn test_measure_00() {
+        let psi = QuantumStateVector::new(&[1.0, 0.0, 0.0, 0.0]); // |00⟩
+        let (bit, psi) = psi.measure(0);
+        assert_eq!(bit, 0);
+        assert_eq!(psi, QuantumStateVector::new(&[1.0, 0.0, 0.0, 0.0])); // |00⟩   
+    }
+
+    #[test]
+    fn test_measure_01() {
+        let psi = QuantumStateVector::new(&[0.0, 1.0, 0.0, 0.0]); // |01⟩
+        let (bit, psi) = psi.measure(0);
+        assert_eq!(bit, 1);
+        assert_eq!(psi, QuantumStateVector::new(&[0.0, 1.0, 0.0, 0.0])); // |01⟩
+    }
+
+    #[test]
+    fn test_measure_bell() {
+        for _ in 0..10 {
+            let psi = QuantumStateVector::new(&[1.0, 0.0, 0.0, 0.0]); // |00⟩
+            let psi = h(psi, 1);
+            let psi = cnot(psi, 1, 0);
+            let (bit1, psi) = psi.measure(1);
+
+            let (bit2, _) = psi.measure(0);
+            assert_eq!(bit1, bit2)
+        }
     }
 }
